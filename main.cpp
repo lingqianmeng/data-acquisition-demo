@@ -104,8 +104,20 @@ void storage_task() {
 
 int main() {
     std::cout << "--- Starting Automotive Data Acquisition Demo ---" << std::endl;
-
-    // todo...
+    
+    // Start threads
+    std::thread hw_thread(acquisition_task);
+    std::thread sw_thread(storage_task);
+    
+    // Let it run for 3 seconds to gather data
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    
+    // Shut down cleanly
+    std::cout << "\n--- Shutting down gracefully ---" << std::endl;
+    is_running = false;
+    
+    hw_thread.join();
+    sw_thread.join();
     
     std::cout << "Demo complete." << std::endl;
     return 0;

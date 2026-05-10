@@ -3,6 +3,8 @@
 #include <atomic>
 #include <optional>
 #include <thread>
+#include <chrono>
+#include <iomanip>
 
 struct AdasRadarData {
     uint64_t timestamp_ms;
@@ -78,6 +80,25 @@ void acquisition_task() {
         
         time += 10;
         std::this_thread::sleep_for(std::chrono::milliseconds(10)); // 100Hz Radar refresh rate
+    }
+}
+
+void storage_task() {
+    std::cout << "[LOGGER] SSD Write sequence started." << std::endl;
+    
+    while (is_running) {
+        auto data = data_buffer.pop();
+        
+        if (data.has_value()) {
+            std::cout << "[LOGGER] T+" << std::setw(4) << data->timestamp_ms << "ms "
+                      << "| ID: 0x0" << (int)data->sensor_id 
+                      << " | Dist: " << std::fixed << std::setprecision(2) << std::setw(6) << data->target_distance_m << "m "
+                      << "| Rel.Spd: " << data->relative_speed_mps << "m/s "
+                      << "| Warn: " << (data->collision_warning ? "YES (AEB Triggered!)" : "NO") 
+                      << std::endl;
+        } else {
+            std::this_thread::sleep_for(std::chrono::milliseconds(2)); 
+        }
     }
 }
 

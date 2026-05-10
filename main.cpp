@@ -1,5 +1,13 @@
 #include <iostream>
 
+struct AdasRadarData {
+    uint64_t timestamp_ms;
+    uint8_t  sensor_id;         // e.g., 0x01 for Front Center Radar
+    float    target_distance_m; // Distance to the car ahead (meters)
+    float    relative_speed_mps;// Relative speed (meters per second)
+    bool     collision_warning; // ADAS flag
+};
+
 template <typename T, size_t Size>
 class CircularBuffer {
 public:

@@ -6,6 +6,7 @@
 #include <chrono>
 #include <iomanip>
 
+// ADAS Radar Data Structure
 struct AdasRadarData {
     uint64_t timestamp_ms;
     uint8_t  sensor_id;         // e.g., 0x01 for Front Center Radar
@@ -14,10 +15,7 @@ struct AdasRadarData {
     bool     collision_warning; // ADAS flag
 };
 
-// --- Global State ---
-std::atomic<bool> is_running{true};
-CircularBuffer<AdasRadarData, 10> data_buffer; // buffer is 10
-
+// The Lock-Free Circular Buffer
 template <typename T, size_t Size>
 class CircularBuffer {
 public:
@@ -53,6 +51,11 @@ private:
     std::atomic<size_t> tail;
 };
 
+// Global state
+std::atomic<bool> is_running{true};
+CircularBuffer<AdasRadarData, 10> data_buffer; // buffer is 10
+
+// The Acquisition Thread (Radar Simulator)
 void acquisition_task() {
     std::cout << "[RADAR HW] Initializing Front Radar sensor..." << std::endl;
     uint64_t time = 0;
@@ -83,6 +86,7 @@ void acquisition_task() {
     }
 }
 
+// The Storage Thread (Blackbox Logger)
 void storage_task() {
     std::cout << "[LOGGER] SSD Write sequence started." << std::endl;
     

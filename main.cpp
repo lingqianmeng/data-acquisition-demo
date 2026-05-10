@@ -1,4 +1,8 @@
 #include <iostream>
+#include <vector>
+#include <atomic>
+#include <optional>
+#include <thread>
 
 struct AdasRadarData {
     uint64_t timestamp_ms;
@@ -7,6 +11,10 @@ struct AdasRadarData {
     float    relative_speed_mps;// Relative speed (meters per second)
     bool     collision_warning; // ADAS flag
 };
+
+// --- Global State ---
+std::atomic<bool> is_running{true};
+CircularBuffer<AdasRadarData, 10> data_buffer; // buffer is 10
 
 template <typename T, size_t Size>
 class CircularBuffer {
@@ -43,6 +51,35 @@ private:
     std::atomic<size_t> tail;
 };
 
+void acquisition_task() {
+    std::cout << "[RADAR HW] Initializing Front Radar sensor..." << std::endl;
+    uint64_t time = 0;
+    
+    // Starting conditions for our simulation
+    float current_distance = 50.0f;     // Start 50 meters away
+    float closing_speed = 25.0f;        // We are catching up at 25 m/s (90 km/h)
+
+    while (is_running) {
+        // Calculate dynamic ADAS data
+        current_distance -= (closing_speed * 0.01f); // Update distance based on 10ms loop
+        bool warning = (current_distance < 15.0f);   // Warn if closer than 15 meters
+
+        AdasRadarData data = { 
+            time, 
+            0x01, // Front Center Radar ID
+            current_distance, 
+            closing_speed, 
+            warning 
+        };
+        
+        if (!data_buffer.push(data)) {
+            std::cerr << "[RADAR HW] ERROR: Frame Dropped! CAN bus / Buffer full." << std::endl;
+        }
+        
+        time += 10;
+        std::this_thread::sleep_for(std::chrono::milliseconds(10)); // 100Hz Radar refresh rate
+    }
+}
 
 int main() {
     std::cout << "--- Starting Automotive Data Acquisition Demo ---" << std::endl;

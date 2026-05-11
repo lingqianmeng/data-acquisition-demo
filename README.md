@@ -3,6 +3,7 @@
 ![C++](https://img.shields.io/badge/C++-17-blue.svg)
 ![OS](https://img.shields.io/badge/OS-Cross--Platform%20%7C%20QNX%20Target-lightgrey)
 ![Status](https://img.shields.io/badge/Status-Prototype-success)
+[![C++ CI Build & Run](https://github.com/lingqianmeng/data-acquisition-demo/actions/workflows/build_and_run.yml/badge.svg)](https://github.com/lingqianmeng/data-acquisition-demo/actions/workflows/build_and_run.yml)
 
 ## 📌 Overview
 This repository contains a C++ prototype for an **Advanced Driver Assistance Systems (ADAS)** data acquisition module. It simulates a high-frequency front-facing radar sensor feeding telemetry data to a storage logging thread via a thread-safe, lock-free ring buffer.

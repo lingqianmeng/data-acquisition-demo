@@ -55,3 +55,22 @@ jobs:
         name: adas_demo_windows
         path: build/Release/adas_demo.exe
         retention-days: 5
+
+  release:
+    needs: build # Wait for the 'build' job to finish compiling
+    runs-on: ubuntu-latest
+    # ONLY run this job if the user pushed a 'v*' tag
+    if: startsWith(github.ref, 'refs/tags/') 
+    
+    steps:
+      - name: Download all compiled binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: final_release_files
+          merge-multiple: true # Puts Windows and Linux files in the same folder
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: final_release_files/**/* # Uses wildcards to guarantee it finds the .exe
+          generate_release_notes: true

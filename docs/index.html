@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Circular Buffer Simulator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        h2 { color: #64b5f6; margin-bottom: 5px; }
+        p.subtitle { color: #9e9e9e; margin-top: 0; margin-bottom: 30px; }
+        
+        .dashboard {
+            background: #1e1e1e;
+            padding: 20px 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 650px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #2c2c2c;
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
+
+        input[type=range] { cursor: pointer; }
+
+        button {
+            padding: 12px 20px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        #btn-push { background-color: #4caf50; color: white; box-shadow: 0 4px #2e7d32; }
+        #btn-push:active { transform: translateY(4px); box-shadow: 0 0 #2e7d32; }
+        
+        #btn-pop { background-color: #f44336; color: white; box-shadow: 0 4px #c62828; }
+        #btn-pop:active { transform: translateY(4px); box-shadow: 0 0 #c62828; }
+
+        #btn-reset { background-color: #ff9800; color: white; box-shadow: 0 4px #f57c00; }
+        #btn-reset:active { transform: translateY(4px); box-shadow: 0 0 #f57c00; }
+
+        .system-status {
+            background: #2c2c2c;
+            padding: 10px 30px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            border: 2px solid #444;
+        }
+
+        .status-empty { color: #ffb74d; }
+        .status-ready { color: #4caf50; }
+        .status-full { color: #ff5252; }
+
+        .error-msg { 
+            color: #ff5252; 
+            font-weight: bold; 
+            height: 24px; 
+            text-align: center;
+        }
+
+        .ring-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 20px 0;
+            border-radius: 50%;
+            border: 2px dashed #444;
+            transition: border-color 0.3s;
+        }
+
+        .center-hub {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: #2c2c2c;
+            padding: 15px;
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border: 4px solid #444;
+        }
+
+        .hub-text { font-size: 14px; font-weight: bold; margin: 2px 0; }
+        .head-color { color: #64b5f6; }
+        .tail-color { color: #ffb74d; }
+
+        .slot-wrapper {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            transform: translate(-50%, -50%);
+        }
+
+        .slot {
+            width: 100%;
+            height: 100%;
+            background-color: #333;
+            border: 3px solid #555;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .slot.full {
+            background-color: #2e7d32;
+            border-color: #4caf50;
+            color: white;
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .badge {
+            position: absolute;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #121212;
+            z-index: 10;
+        }
+        .badge-head { background-color: #64b5f6; top: -15px; right: -25px; box-shadow: 0 0 10px #64b5f6; }
+        .badge-tail { background-color: #ffb74d; bottom: -15px; left: -25px; box-shadow: 0 0 10px #ffb74d; }
+    </style>
+</head>
+<body>
+
+    <h2>C++ Lock-Free Circular Buffer</h2>
+    <p class="subtitle">Zero-Copy Data Acquisition Architecture</p>
+
+    <div class="dashboard">
+        <div class="controls">
+            <div class="slider-group">
+                <label for="size-slider">Buffer Size: <span id="size-val">8</span></label>
+                <input type="range" id="size-slider" min="4" max="16" value="8" step="1">
+            </div>
+            <button id="btn-push">Push (Acquire)</button>
+            <button id="btn-pop">Pop (Store)</button>
+            <button id="btn-reset">Reset</button>
+        </div>
+
+        <div class="system-status">
+            System State: <span id="sys-status" class="status-empty">EMPTY</span>
+        </div>
+        <div class="error-msg" id="error-msg"></div>
+
+        <div class="ring-container" id="ring-container">
+            <div class="center-hub">
+                <div class="hub-text head-color">HEAD: <span id="hub-head">0</span></div>
+                <div class="hub-text tail-color">TAIL: <span id="hub-tail">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let SIZE = 8;
+        let head = 0;
+        let tail = 0;
+        let buffer = new Array(SIZE).fill(null);
+        let dataCounter = 1;
+
+        const ringContainer = document.getElementById('ring-container');
+        const errorMsg = document.getElementById('error-msg');
+        const sysStatus = document.getElementById('sys-status');
+        const sizeSlider = document.getElementById('size-slider');
+        const sizeVal = document.getElementById('size-val');
+        const hubHead = document.getElementById('hub-head');
+        const hubTail = document.getElementById('hub-tail');
+
+        function updateSystemStatus() {
+            let next_head = (head + 1) % SIZE;
+            if (head === tail) {
+                sysStatus.innerText = "EMPTY";
+                sysStatus.className = "status-empty";
+            } else if (next_head === tail) {
+                sysStatus.innerText = "FULL";
+                sysStatus.className = "status-full";
+            } else {
+                sysStatus.innerText = "READY";
+                sysStatus.className = "status-ready";
+            }
+        }
+
+        function render() {
+            const slots = ringContainer.querySelectorAll('.slot-wrapper');
+            slots.forEach(s => s.remove());
+
+            const radius = 170;
+            const centerX = 200;
+            const centerY = 200;
+
+            for (let i = 0; i < SIZE; i++) {
+                const isHead = (i === head);
+                const isTail = (i === tail);
+                const isFull = buffer[i] !== null;
+
+                const angle = (i / SIZE) * 2 * Math.PI - (Math.PI / 2); 
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'slot-wrapper';
+                wrapper.style.left = `${x}px`;
+                wrapper.style.top = `${y}px`;
+
+                const slot = document.createElement('div');
+                slot.className = `slot ${isFull ? 'full' : ''}`;
+                slot.innerText = isFull ? buffer[i] : i; 
+
+                if (isHead) {
+                    const badge = document.createElement('div');
+                    badge.className = 'badge badge-head';
+                    badge.innerText = 'HEAD';
+                    slot.appendChild(badge);
+                }
+                
+                if (isTail) {
+                    const badge = document.createElement('div');
+                    badge.className = 'badge badge-tail';
+                    badge.innerText = 'TAIL';
+                    slot.appendChild(badge);
+                }
+
+                wrapper.appendChild(slot);
+                ringContainer.appendChild(wrapper);
+            }
+
+            hubHead.innerText = head;
+            hubTail.innerText = tail;
+            updateSystemStatus();
+        }
+
+        document.getElementById('btn-push').addEventListener('click', () => {
+            errorMsg.innerText = '';
+            let next_head = (head + 1) % SIZE;
+            
+            if (next_head === tail) {
+                errorMsg.innerText = "OVERRUN: Buffer is Full! Radar Frame Dropped.";
+                ringContainer.style.borderColor = "#ff5252";
+                setTimeout(() => ringContainer.style.borderColor = "#444", 300);
+                return;
+            }
+            
+            buffer[head] = "D" + dataCounter++;
+            head = next_head;
+            render();
+        });
+
+        document.getElementById('btn-pop').addEventListener('click', () => {
+            errorMsg.innerText = '';
+            
+            if (head === tail) {
+                errorMsg.innerText = "UNDERRUN: Buffer is Empty! No data to write.";
+                return;
+            }
+            
+            buffer[tail] = null;
+            tail = (tail + 1) % SIZE;
+            render();
+        });
+
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            buffer = new Array(SIZE).fill(null);
+            head = 0;
+            tail = 0;
+            dataCounter = 1;
+            errorMsg.innerText = "";
+            ringContainer.style.borderColor = "#444";
+            render();
+        });
+
+        sizeSlider.addEventListener('input', (e) => {
+            SIZE = parseInt(e.target.value);
+            sizeVal.innerText = SIZE;
+            buffer = new Array(SIZE).fill(null);
+            head = 0;
+            tail = 0;
+            dataCounter = 1;
+            errorMsg.innerText = "Buffer resized. Memory cleared.";
+            errorMsg.style.color = "#ffb74d";
+            setTimeout(() => { errorMsg.innerText = ""; errorMsg.style.color = "#ff5252"; }, 2000);
+            render();
+        });
+
+        render();
+    </script>
+</body>
+</html>

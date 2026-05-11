@@ -49,3 +49,21 @@ cmake --build build
 
 # 3. Run the executable (Windows)
 ./build/Debug/adas_demo.exe
+```
+
+### 🖥️ Expected Terminal Output
+*If you just want to see the system in action, here is the automated test output from our latest Linux runner:*
+
+```text
+--- Starting Automotive Data Acquisition Demo ---
+[LOGGER] SSD Write sequence started.
+[RADAR HW] Initializing Front Radar sensor...
+[LOGGER] T+   0ms | ID: 0x01 | Dist:  49.75m | Rel.Spd: 25.00m/s | Warn: NO
+[LOGGER] T+  10ms | ID: 0x01 | Dist:  49.50m | Rel.Spd: 25.00m/s | Warn: NO
+[LOGGER] T+  20ms | ID: 0x01 | Dist:  49.25m | Rel.Spd: 25.00m/s | Warn: NO
+[LOGGER] T+  30ms | ID: 0x01 | Dist:  49.00m | Rel.Spd: 25.00m/s | Warn: NO
+...
+[LOGGER] T+1400ms | ID: 0x01 | Dist:  14.75m | Rel.Spd: 25.00m/s | Warn: YES (AEB Triggered!)
+...
+--- Shutting down gracefully ---
+Demo complete.

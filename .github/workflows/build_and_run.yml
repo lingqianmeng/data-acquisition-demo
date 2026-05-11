@@ -38,3 +38,20 @@ jobs:
     - name: Run the Demo (Windows)
       if: runner.os == 'Windows'
       run: ./build/Release/adas_demo.exe
+
+    # We must save the files so the Release job can find them later
+    - name: Upload Linux Binary
+      if: runner.os == 'Linux'
+      uses: actions/upload-artifact@v4
+      with:
+        name: adas_demo_linux
+        path: build/adas_demo
+        retention-days: 5
+
+    - name: Upload Windows Executable
+      if: runner.os == 'Windows'
+      uses: actions/upload-artifact@v4
+      with:
+        name: adas_demo_windows
+        path: build/Release/adas_demo.exe
+        retention-days: 5

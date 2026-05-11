@@ -1,6 +1,5 @@
 name: C++ CI Build & Run
 
-# Trigger this workflow only on the 'main' branch
 on:
   push:
     branches: [ "main" ]
@@ -9,26 +8,33 @@ on:
 
 jobs:
   build:
-    # The 'matrix' strategy runs the job multiple times in parallel
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
         
     runs-on: ${{ matrix.os }}
 
-    # Force Windows to use Bash instead of PowerShell so our compile/run commands match Linux perfectly
     defaults:
       run:
         shell: bash
 
     steps:
-    # Step 1: Check out the code
     - uses: actions/checkout@v3
 
-    # Step 2: Compile the C++ code
-    - name: Compile the Code
-      run: g++ -std=c++17 -pthread main.cpp -o adas_demo
+    # Step 1: Configure CMake
+    - name: Configure CMake
+      run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
 
-    # Step 3: Run the executable (The 2-second simulation)
-    - name: Run the Demo
-      run: ./adas_demo
+    # Step 2: Build the Code using CMake
+    - name: Build the Code
+      run: cmake --build build --config Release
+
+    # Step 3a: Run the Demo (Linux)
+    - name: Run the Demo (Linux)
+      if: runner.os == 'Linux'
+      run: ./build/adas_demo
+
+    # Step 3b: Run the Demo (Windows)
+    - name: Run the Demo (Windows)
+      if: runner.os == 'Windows'
+      run: ./build/Release/adas_demo.exe

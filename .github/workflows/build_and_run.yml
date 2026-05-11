@@ -1,0 +1,34 @@
+name: C++ CI Build & Run
+
+# Trigger this workflow only on the 'main' branch
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    # The 'matrix' strategy runs the job multiple times in parallel
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        
+    runs-on: ${{ matrix.os }}
+
+    # Force Windows to use Bash instead of PowerShell so our compile/run commands match Linux perfectly
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    # Step 1: Check out the code
+    - uses: actions/checkout@v3
+
+    # Step 2: Compile the C++ code
+    - name: Compile the Code
+      run: g++ -std=c++17 -pthread main.cpp -o adas_demo
+
+    # Step 3: Run the executable (The 2-second simulation)
+    - name: Run the Demo
+      run: ./adas_demo

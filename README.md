@@ -9,6 +9,9 @@ This repository contains a C++ prototype for an **Advanced Driver Assistance Sys
 
 This project demonstrates **Zero-Copy** data architecture, deterministic memory management, and concurrent programming techniques essential for Real-Time Operating Systems (RTOS) like **QNX** or **AUTOSAR** environments.
 
+### 🎮 Live Interactive Demo
+**[Click here to view the Interactive Lock-Free Ring Buffer Simulator](https://lingqianmeng.github.io/data-acquisition-demo/)**
+
 ## 🏗️ Architecture
 
 The system is decoupled into two primary threads to ensure high-frequency hardware interrupts are not blocked by slower I/O operations (like writing to an SSD).

@@ -1,0 +1,13 @@
+# CMake build directory
+/build/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+
+# Bazel symlinks and cache
+/bazel-*
+
+# Executables
+*.exe
+*.out
+adas_demo

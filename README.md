@@ -30,11 +30,21 @@ The system is decoupled into two primary threads to ensure high-frequency hardwa
 ## 🚀 Getting Started
 
 ### Prerequisites
-You need a compiler that supports **C++17** or higher.
-* Windows: MSVC or MinGW (`g++`)
-* Linux/macOS: GCC (`g++`) or Clang (`clang++`)
+* A C++ compiler supporting **C++17** (GCC, Clang, or MSVC)
+* **CMake** (v3.10 or higher)
+* *(Optional)* **Bazel** for enterprise build scaling
 
-### Build & Run (Windows - MinGW/g++)
+### Build & Run with CMake
+
 ```bash
-g++ -std=c++17 -pthread main.cpp -o adas_demo
-./adas_demo.exe
+# 1. Generate the build files
+cmake -S . -B build
+
+# 2. Compile the project
+cmake --build build
+
+# 3. Run the executable (Linux/Mac)
+./build/adas_demo
+
+# 3. Run the executable (Windows)
+./build/Debug/adas_demo.exe

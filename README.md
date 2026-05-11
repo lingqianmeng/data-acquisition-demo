@@ -6,7 +6,7 @@
 [![C++ CI Build & Run](https://github.com/lingqianmeng/data-acquisition-demo/actions/workflows/build_and_run.yml/badge.svg)](https://github.com/lingqianmeng/data-acquisition-demo/actions/workflows/build_and_run.yml)
 
 ## 📌 Overview
-This repository contains a C++ prototype for an **Advanced Driver Assistance Systems (ADAS)** data acquisition module. It simulates a high-frequency front-facing radar sensor feeding telemetry data to a storage logging thread via a thread-safe, lock-free ring buffer.
+This repository contains a C++ prototype for an **Advanced Driver Assistance Systems (ADAS)** data acquisition module. It simulates a high-frequency (100Hz) front-facing radar sensor feeding data to a storage logging thread via a thread-safe, lock-free ring buffer.
 
 This project demonstrates **Zero-Copy** data architecture, deterministic memory management, and concurrent programming techniques essential for Real-Time Operating Systems (RTOS) like **QNX** or **AUTOSAR** environments.
 
@@ -23,10 +23,10 @@ The system is decoupled into two primary threads to ensure high-frequency hardwa
 
 ## ✨ Key Features
 
-* **Zero-Copy Transfer:** Utilizes atomic pointers to manage buffer indices without duplicating heavy structs in memory.
-* **Deterministic Allocation:** No `malloc` or `new` calls during runtime to prevent heap fragmentation and latency spikes.
-* **Overrun Protection:** Gracefully handles non-deterministic latency by dropping oldest frames and logging warnings rather than crashing.
-* **ADAS Telemetry:** Simulates real-world automotive data (Distance, Speed, Collision Flags).
+* **Lock-Free, Zero-Copy Architecture:** Employs `std::atomic` pointers with strict memory ordering (Acquire/Release) to pass data safely between threads. This eliminates the need for slow `std::mutex` locks and prevents CPU-heavy deep copying of structs.
+* **Deterministic Memory (O(1)):** Pre-allocates all buffer memory at startup. Strictly avoids `malloc()` or `new` during runtime to prevent heap fragmentation and guarantee constant-time execution, aligning with core RTOS and MISRA C++ safety guidelines.
+* **Non-Blocking Overrun Protection:** Safely handles OS scheduling latency. If the consumer thread (SSD) falls behind, the producer thread (Radar) drops the stale frame and logs a warning rather than blocking the hardware interrupt or causing a segmentation fault.
+* **High-Frequency ADAS Simulation:** Accurately mimics a 100Hz front-facing radar sensor, dynamically calculating relative closing speeds, target distances, and triggering Autonomous Emergency Braking (AEB) priority flags.
 
 ## 🚀 Getting Started
 
@@ -49,3 +49,21 @@ cmake --build build
 
 # 3. Run the executable (Windows)
 ./build/Debug/adas_demo.exe
+```
+
+### 🖥️ Expected Terminal Output
+*If you just want to see the system in action, here is the automated test output from our latest Linux runner:*
+
+```text
+--- Starting Automotive Data Acquisition Demo ---
+[LOGGER] SSD Write sequence started.
+[RADAR HW] Initializing Front Radar sensor...
+[LOGGER] T+   0ms | ID: 0x01 | Dist:  49.75m | Rel.Spd: 25.00m/s | Warn: NO
+[LOGGER] T+  10ms | ID: 0x01 | Dist:  49.50m | Rel.Spd: 25.00m/s | Warn: NO
+[LOGGER] T+  20ms | ID: 0x01 | Dist:  49.25m | Rel.Spd: 25.00m/s | Warn: NO
+[LOGGER] T+  30ms | ID: 0x01 | Dist:  49.00m | Rel.Spd: 25.00m/s | Warn: NO
+...
+[LOGGER] T+1400ms | ID: 0x01 | Dist:  14.75m | Rel.Spd: 25.00m/s | Warn: YES (AEB Triggered!)
+...
+--- Shutting down gracefully ---
+Demo complete.

@@ -65,7 +65,11 @@ jobs:
     needs: build # Wait for the 'build' job to finish compiling
     runs-on: ubuntu-latest
     # ONLY run this job if the user pushed a 'v*' tag
-    if: startsWith(github.ref, 'refs/tags/') 
+    if: startsWith(github.ref, 'refs/tags/')
+
+    # --- ADD THIS BLOCK to grant write access, otherwise release will be rejected due to error 403---
+    permissions:
+      contents: write 
     
     steps:
       - name: Download all compiled binaries
